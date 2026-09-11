@@ -1,12 +1,13 @@
 {
   "generatedAt": "2026-09-11T04:02:00.000Z",
   "provider": "higgsfield-style",
-  "note": "Visual plates for anatomy layers. Regenerate with Higgsfield via npm run generate:assets (HF_API_KEY_ID + HF_API_KEY_SECRET).",
+  "base": "./",
+  "note": "Visual plates for anatomy layers. Regenerate with Higgsfield via npm run generate:assets (HF_API_KEY_ID + HF_API_KEY_SECRET). Paths are relative to this file so they work both locally and under /<repo>/ on GitHub Pages.",
   "assets": {
-    "muscles": { "id": "muscles", "file": "muscles.png", "url": "/assets/muscles.png" },
-    "bones": { "id": "bones", "file": "bones.png", "url": "/assets/bones.png" },
-    "ligaments": { "id": "ligaments", "file": "ligaments.png", "url": "/assets/ligaments.png" },
-    "tendons": { "id": "tendons", "file": "tendons.png", "url": "/assets/tendons.png" },
-    "hero": { "id": "hero", "file": "hero.png", "url": "/assets/hero.png" }
+    "muscles": { "id": "muscles", "file": "muscles.png", "url": "./muscles.png" },
+    "bones": { "id": "bones", "file": "bones.png", "url": "./bones.png" },
+    "ligaments": { "id": "ligaments", "file": "ligaments.png", "url": "./ligaments.png" },
+    "tendons": { "id": "tendons", "file": "tendons.png", "url": "./tendons.png" },
+    "hero": { "id": "hero", "file": "hero.png", "url": "./hero.png" }
   }
 }

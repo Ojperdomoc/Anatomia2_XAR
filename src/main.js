@@ -10,12 +10,15 @@ const MODEL_URL =
 const WASM_URL =
   'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.21/wasm';
 
+// BASE_URL = "/" en local y "/<repo>/" cuando se publica en GitHub Pages.
+const assetUrl = (file) => `${import.meta.env.BASE_URL}assets/${file}`;
+
 const ASSET_MANIFEST = {
-  muscles: '/assets/muscles.png',
-  bones: '/assets/bones.png',
-  ligaments: '/assets/ligaments.png',
-  tendons: '/assets/tendons.png',
-  all: '/assets/hero.png',
+  muscles: assetUrl('muscles.png'),
+  bones: assetUrl('bones.png'),
+  ligaments: assetUrl('ligaments.png'),
+  tendons: assetUrl('tendons.png'),
+  all: assetUrl('hero.png'),
 };
 
 /* ─── DOM ──────────────────────────────────────────────────────── */

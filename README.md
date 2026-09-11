@@ -24,6 +24,25 @@ npm run dev
 
 Abre la URL local (o el preview), pulsa **Activar cámara** y colócate a cuerpo completo frente a la cámara.
 
+## Demo publicada
+
+👉 **https://ojperdomoc.github.io/Anatomia2_XAR/**
+
+Se publica sola en cada push a `main` con GitHub Actions
+(`.github/workflows/deploy-pages.yml`). También puedes lanzarla a mano desde la
+pestaña **Actions → Deploy to GitHub Pages → Run workflow**.
+
+Requisito de una sola vez: en **Settings → Pages → Build and deployment**, la
+opción *Source* debe estar en **GitHub Actions**.
+
+El build detecta que corre en Actions y prefija los assets con `/Anatomia2_XAR/`
+(ver `vite.config.js`); en local se sigue usando `/`. Para replicar el build de
+producción en tu máquina:
+
+```bash
+GITHUB_ACTIONS=true GITHUB_REPOSITORY=Ojperdomoc/Anatomia2_XAR npm run build
+```
+
 ## Generar assets con Higgsfield
 
 Las texturas de `public/assets/` se pueden regenerar con la API de [Higgsfield](https://docs.higgsfield.ai/docs):
