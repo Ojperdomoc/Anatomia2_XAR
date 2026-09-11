@@ -1,0 +1,20 @@
+{
+  "name": "anatomia2-xar",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Anatomía XR — músculos, huesos, ligamentos y tendones en tiempo real con cámara",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0 --port 5173",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0 --port 5173",
+    "generate:assets": "node scripts/generate-higgsfield.mjs",
+    "generate:placeholders": "node scripts/make-placeholders.mjs"
+  },
+  "dependencies": {
+    "@mediapipe/tasks-vision": "^0.10.21"
+  },
+  "devDependencies": {
+    "vite": "^6.2.0"
+  }
+}
