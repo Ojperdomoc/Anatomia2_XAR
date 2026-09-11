@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#05080f" />
+    <meta name="description" content="Anatomía XR — visualiza músculos, huesos, ligamentos y tendones con tu cámara" />
+    <title>Anatomía XR · Músculos · Huesos · Ligamentos · Tendones</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <div id="app">
+      <!-- Ambient background -->
+      <div class="bg-grid" aria-hidden="true"></div>
+      <div class="bg-glow bg-glow-a" aria-hidden="true"></div>
+      <div class="bg-glow bg-glow-b" aria-hidden="true"></div>
+
+      <!-- Top bar -->
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 40 40" width="28" height="28">
+              <defs>
+                <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#5eead4" />
+                  <stop offset="100%" stop-color="#818cf8" />
+                </linearGradient>
+              </defs>
+              <circle cx="20" cy="20" r="18" fill="none" stroke="url(#g)" stroke-width="2" opacity="0.6" />
+              <path d="M20 6 L20 34 M12 12 Q20 18 28 12 M12 28 Q20 22 28 28" stroke="url(#g)" stroke-width="2" fill="none" stroke-linecap="round" />
+            </svg>
+          </div>
+          <div class="brand-text">
+            <span class="brand-title">ANATOMÍA XR</span>
+            <span class="brand-sub">Body Vision · v1.0</span>
+          </div>
+        </div>
+
+        <div class="status-pills">
+          <div class="pill" id="cam-status">
+            <span class="dot"></span>
+            <span class="pill-label">Cámara</span>
+          </div>
+          <div class="pill" id="pose-status">
+            <span class="dot"></span>
+            <span class="pill-label">Pose</span>
+          </div>
+          <div class="pill fps-pill">
+            <span class="pill-label" id="fps-label">-- FPS</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Stage -->
+      <main class="stage">
+        <div class="viewport" id="viewport">
+          <video id="video" playsinline autoplay muted></video>
+          <canvas id="overlay"></canvas>
+
+          <!-- Scanlines / HUD frame -->
+          <div class="hud-frame" aria-hidden="true">
+            <span class="corner tl"></span>
+            <span class="corner tr"></span>
+            <span class="corner bl"></span>
+            <span class="corner br"></span>
+            <div class="scanline"></div>
+          </div>
+
+          <!-- Idle / permission states -->
+          <div class="overlay-panel" id="idle-panel">
+            <div class="idle-card">
+              <div class="idle-hero" aria-hidden="true">
+                <img src="/assets/hero.png" alt="" width="220" height="220" />
+                <div class="idle-orb">
+                  <div class="orb-ring"></div>
+                  <div class="orb-core"></div>
+                </div>
+              </div>
+              <h1>Explora tu anatomía</h1>
+              <p>
+                Activa la cámara y muévete. Verás en tiempo real tus
+                <strong>músculos</strong>, <strong>huesos</strong>,
+                <strong>ligamentos</strong> y <strong>tendones</strong>
+                proyectados sobre tu cuerpo.
+              </p>
+              <div class="layer-preview" aria-hidden="true">
+                <span style="--c:#ff6b6b">Músculos</span>
+                <span style="--c:#e8f0ff">Huesos</span>
+                <span style="--c:#fbbf24">Ligamentos</span>
+                <span style="--c:#a78bfa">Tendones</span>
+              </div>
+              <button class="btn-primary" id="btn-start" type="button">
+                <span class="btn-glow"></span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M4 8a2 2 0 012-2h2l1.5-2h5L16 6h2a2 2 0 012 2v10a2 2 0 01-2 2H6a2 2 0 01-2-2V8z" stroke="currentColor" stroke-width="1.6"/>
+                  <circle cx="12" cy="13" r="3.5" stroke="currentColor" stroke-width="1.6"/>
+                </svg>
+                Activar cámara
+              </button>
+              <p class="fine-print">Todo se procesa en tu dispositivo. No se sube ningún video.</p>
+            </div>
+          </div>
+
+          <div class="overlay-panel hidden" id="loading-panel">
+            <div class="idle-card compact">
+              <div class="loader" aria-hidden="true"></div>
+              <h2 id="loading-text">Cargando modelo de pose…</h2>
+              <p class="fine-print">Primera vez puede tardar unos segundos</p>
+            </div>
+          </div>
+
+          <!-- Live body readout -->
+          <div class="body-readout" id="body-readout" hidden>
+            <div class="readout-title">SISTEMA DETECTADO</div>
+            <div class="readout-row"><span>Confianza</span><b id="conf-value">—</b></div>
+            <div class="readout-row"><span>Capa activa</span><b id="layer-value">Músculos</b></div>
+            <div class="readout-row"><span>Segmentos</span><b id="seg-value">—</b></div>
+          </div>
+
+          <!-- Part tooltip -->
+          <div class="part-tooltip" id="part-tooltip" hidden></div>
+        </div>
+      </main>
+
+      <!-- Bottom controls -->
+      <footer class="controls">
+        <div class="layer-rail" role="tablist" aria-label="Capas anatómicas">
+          <button class="layer-btn active" data-layer="muscles" role="tab" aria-selected="true" type="button">
+            <span class="layer-icon" style="--c:#ff6b6b">
+              <svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M12 2c-1.5 3-4 5-4 9a4 4 0 008 0c0-4-2.5-6-4-9zm-6 14c0-2 1.5-3.5 3-5-1 3 .5 5 3 6-3 0-6-1-6-1zm12 0s-3 1-6 1c2.5-1 4-3 3-6 1.5 1.5 3 3 3 5z"/></svg>
+            </span>
+            <span class="layer-name">Músculos</span>
+            <span class="layer-hint">Fuerza</span>
+          </button>
+
+          <button class="layer-btn" data-layer="bones" role="tab" aria-selected="false" type="button">
+            <span class="layer-icon" style="--c:#e8f0ff">
+              <svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M8 3a2 2 0 114 0v2h2a2 2 0 110 4h-2v2h2a2 2 0 110 4h-2v2a2 2 0 11-4 0v-2H6a2 2 0 110-4h2v-2H6a2 2 0 110-4h2V3zm8 4a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm0 8a1.5 1.5 0 110 3 1.5 1.5 0 010-3z"/></svg>
+            </span>
+            <span class="layer-name">Huesos</span>
+            <span class="layer-hint">Esqueleto</span>
+          </button>
+
+          <button class="layer-btn" data-layer="ligaments" role="tab" aria-selected="false" type="button">
+            <span class="layer-icon" style="--c:#fbbf24">
+              <svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M7 4a2 2 0 114 0v6.2l6-3.5a2 2 0 112 3.4L13 13.5l6 3.4a2 2 0 11-2 3.4l-6-3.5V20a2 2 0 11-4 0v-6.2l-6 3.5a2 2 0 11-2-3.4L7 10.5 1 7.1A2 2 0 113 3.7l6 3.5V4z"/></svg>
+            </span>
+            <span class="layer-name">Ligamentos</span>
+            <span class="layer-hint">Uniones</span>
+          </button>
+
+          <button class="layer-btn" data-layer="tendons" role="tab" aria-selected="false" type="button">
+            <span class="layer-icon" style="--c:#a78bfa">
+              <svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M12 2a2.5 2.5 0 012.5 2.5V9h1A2.5 2.5 0 0118 11.5v1A2.5 2.5 0 0115.5 15H14.5v4.5a2.5 2.5 0 01-5 0V15H8.5A2.5 2.5 0 016 12.5v-1A2.5 2.5 0 018.5 9H9.5V4.5A2.5 2.5 0 0112 2z"/></svg>
+            </span>
+            <span class="layer-name">Tendones</span>
+            <span class="layer-hint">Anclaje</span>
+          </button>
+
+          <button class="layer-btn" data-layer="all" role="tab" aria-selected="false" type="button">
+            <span class="layer-icon" style="--c:#5eead4">
+              <svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M12 2l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1 3-6z"/></svg>
+            </span>
+            <span class="layer-name">Todo</span>
+            <span class="layer-hint">Completo</span>
+          </button>
+        </div>
+
+        <div class="tool-row">
+          <label class="slider-block" title="Opacidad del overlay">
+            <span>Opacidad</span>
+            <input type="range" id="opacity" min="20" max="100" value="85" />
+          </label>
+
+          <label class="slider-block" title="Intensidad del glow">
+            <span>Glow</span>
+            <input type="range" id="glow" min="0" max="100" value="70" />
+          </label>
+
+          <label class="toggle-block" title="Mostrar esqueleto base">
+            <input type="checkbox" id="show-skeleton" checked />
+            <span>Guía</span>
+          </label>
+
+          <label class="toggle-block" title="Etiquetas de estructuras">
+            <input type="checkbox" id="show-labels" checked />
+            <span>Nombres</span>
+          </label>
+
+          <button class="btn-ghost" id="btn-flip" type="button" title="Cambiar cámara">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M16 3l4 4-4 4M8 21l-4-4 4-4M20 7H9a5 5 0 000 10h2M4 17h11a5 5 0 000-10h-2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Voltear
+          </button>
+
+          <button class="btn-ghost" id="btn-snap" type="button" title="Capturar imagen">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 8h3l2-3h6l2 3h3v11H4V8z" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="13" r="3.2" stroke="currentColor" stroke-width="1.7"/></svg>
+            Foto
+          </button>
+        </div>
+
+        <!-- Info strip for selected structure -->
+        <div class="info-strip" id="info-strip">
+          <div class="info-chip" style="--c:#ff6b6b">Músculos</div>
+          <p id="info-text">
+            Tejido contráctil que genera movimiento. Observa cómo se tensan hombros, brazos y piernas al moverte.
+          </p>
+        </div>
+      </footer>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
